@@ -10,6 +10,7 @@ def truncate(n, decimals=0):
     multiplier = 10**decimals
     return int(n * multiplier) / multiplier
 
+
 class Coco2Yolo(object):
     def __init__(
         self,
@@ -238,27 +239,8 @@ def main(
         'cat_infos': cat_infos,
     }
     print(kwargs)
-    aa = Coco2Yolo(**kwargs)
+    coco2yolo = Coco2Yolo(**kwargs)
 
 
 if __name__ == '__main__':
-    # parser = argparse.ArgumentParser('COCO2YOLO', formatter_class=argparse.)
-    # parser.add_argument(
-    #     '-ann-path',
-    #     '--annotations-path',
-    #     type=Path,
-    # )
-    # parser.add_argument(
-    #     '-cat-cfg',
-    #     '--categories-config',
-    #     type=Path,
-    # )
-    # subparser = parser.add_subparsers(title='CATEGERIES-CONFIG')
-    # cate_sub = subparser.add_parser('CATEGERIES-CONFIG')
-    # cate_sub.add_argument('--type', '-t')
-
-    # opt = parser.parse_args()
-    # print(opt)
-    # main(path='./data/annotations/instances_val2014.json', cat_type='file')
     main()
-    print('aa')
