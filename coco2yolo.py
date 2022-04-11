@@ -209,7 +209,7 @@ class Coco2Yolo(object):
     'cat_type',
     type=str,
     default='interactive',
-    help=f"Category input type. {str_format('(interactive, file)', fore='y')}",
+    help=f"Category input type. {str_format('(interactive | file)', fore='y')}",
     show_default=True,
 )
 @click.option(
@@ -218,7 +218,7 @@ class Coco2Yolo(object):
     'set_type',
     type=str,
     default='union',
-    help=f"Set Computing for the data. {str_format('(union, intersection)', fore='y')}",
+    help=f"Set Computing for the data. {str_format('(union | intersection)', fore='y')}",
     show_default=True,
 )
 @click.argument('cat_infos', type=str, default=None, nargs=-1)
