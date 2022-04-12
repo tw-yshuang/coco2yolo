@@ -1,8 +1,7 @@
 # coco2yolo
 
-A CLI tool can create a specific task-dataset you want base on COCO dataset.
-
-Just given the annotation JSON file, this tool will help you **_download the data_** and set the **_symbolic links_** from data_dir to task_dir !!
+A CLI tool can create a specific task-dataset you want based on COCO dataset. \
+Given the annotation JSON file, this tool will help you **_download the data_** and set the **_symbolic links_** from data_dir to task_dir !!
 
 ## Installation
 
@@ -12,7 +11,7 @@ Just given the annotation JSON file, this tool will help you **_download the dat
 $ pip3 install pycocotools requests click
 ```
 
-### Clone this Repo:
+### Clon the Repository
 
 ```shell
 $ git clone git@github.com:tw-yshuang/coco2yolo.git
