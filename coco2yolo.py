@@ -27,6 +27,8 @@ class Coco2Yolo(object):
         if task_dir is None:
             task_dir = re.sub('[ ,!@#$]', '', input("Enter the directory that you want to save the task: "))
 
+        cat_type = cat_type.lower()
+        set_type = set_type.lower()
         if cat_type not in ('interactive', 'file'):
             raise ValueError(f"{str_format('[Wrong Parameter] --category-type [interactive | file]', fore='r')}")
         if set_type not in ('union', 'intersection'):
@@ -52,8 +54,7 @@ class Coco2Yolo(object):
         if self.cat_type == 'interactive':
             self.cat_infos = list(self.cat_infos)
         elif self.cat_type == 'file':
-            self.cat_infos = self.cat_infos[0] if type(self.cat_infos) == list else self.cat_infos
-            print(self.cat_infos, type(self.cat_infos))
+            self.cat_infos = self.cat_infos[0] if type(self.cat_infos) == tuple else self.cat_infos
             with open(self.cat_infos, 'r') as f:
                 self.cat_infos = list(json.load(f))
         else:
@@ -79,16 +80,28 @@ class Coco2Yolo(object):
         # create symbolic links from self.img_dir to self.task_dir
         self._create_symbolic_links()
         # exist images covert to yolo format
+        print(f"{str_format('Converting COCO format to YOLO format by task...', fore='g')}")
         for img_info in self.exist_img_infos:
             self.covert2yolo(img_info)
+        print(f"{str_format(f'Covert format from {self.ann_path} to {self.task_dir}/ complete!!', fore='g')}")
+
+        print(f"{str_format('DONE!!', style='hight', fore='g')}")
 
     def _check_all_data_exist(self):
         self.name_correspond_table = {}
         self.cat_ids = []
+        noexist_cats = []
         for cat_info in self.cat_infos:
-            cat_id = self.coco.getCatIds(catNms=cat_info)[0]
-            self.name_correspond_table[cat_info] = cat_id
-            self.cat_ids.append(cat_id)
+            try:
+                cat_id = self.coco.getCatIds(catNms=cat_info)[0]
+                self.name_correspond_table[cat_info] = cat_id
+                self.cat_ids.append(cat_id)
+            except IndexError:
+                noexist_cats.append(cat_info)
+                print(f"Not exist category name: {str_format(cat_info, fore='y')}")
+
+        [self.cat_infos.remove(noexist_cat) for noexist_cat in noexist_cats]
+        print(self.cat_infos)
 
         if len(self.cat_ids) == 0:
             raise ValueError(
@@ -105,7 +118,7 @@ class Coco2Yolo(object):
                 filenames = get_filenames(dir_path=self.img_dir, specific_name='*.jpg', withDirPath=False)
                 self.exist_img_infos = []
                 self.noexist_img_infos = []
-                print(len(imgINFOs))
+                print(f"The total number of the data: {len(imgINFOs)}")
                 for img_info in imgINFOs:
                     if img_info['file_name'] in (filenames):
                         self.exist_img_infos.append(img_info)
@@ -113,6 +126,7 @@ class Coco2Yolo(object):
                         self.noexist_img_infos.append(img_info)
 
                 if len(self.noexist_img_infos) == 0:
+                    del self.noexist_img_infos
                     return True
                 else:
                     return False
@@ -122,8 +136,6 @@ class Coco2Yolo(object):
                 return False
 
     def _download_data(self):
-        # Create a subfolder in this directory called "downloaded_images". This is where your images will be downloaded into.
-        # Comment this entire section out if you don't want to download the images
         idx = 0
         try:
             for idx, img_info in enumerate(self.noexist_img_infos):
@@ -132,6 +144,7 @@ class Coco2Yolo(object):
                 with open(f'{self.img_dir}/{img_info["file_name"]}', 'wb') as f:
                     f.write(img_data)
             self.exist_img_infos.extend(self.noexist_img_infos)
+            del self.noexist_img_infos
             return True
         except:
             self.exist_img_infos.extend(self.noexist_img_infos[:idx])
@@ -142,7 +155,7 @@ class Coco2Yolo(object):
         print(f"{str_format('Creating symbolic links...', fore='g')}")
         if check2create_dir(self.task_dir):
             if not ask_yn(
-                f"Already exist a directory in here, do you still want to use this directory save your task?\n(Note: if yes, it will not recover {self.task_dir})",
+                f"Already exist a directory in here, do you still want to use this directory save your task?\n(Note: if yes, it will save existing & new files in the {self.task_dir})",
                 fore='y',
             ):
                 self.task_dir = input("Enter new directory path: ")
@@ -156,12 +169,13 @@ class Coco2Yolo(object):
             except FileExistsError:
                 if recover_info[0] == 0:
                     recover_info[1] = ask_yn(
-                        f"There has a {str_format('File Exisits', fore='r')} happen, do you want to recover it?(Even at the rest of the File Exisits happen)"
+                        f"There has a {str_format('File Exists', fore='r')} happen, do you want to recover it?(Even at the rest of the File Exists happen)"
                     )
                 os.remove(f'{self.task_dir}/{img_info["file_name"]}')
+                os.symlink(f'{self.img_dir}/{img_info["file_name"]}', f'{self.task_dir}/{img_info["file_name"]}')
                 recover_info[0] += 1
 
-        print(f"{str_format('DONE!!', fore='g')}")
+        print(f"{str_format(f'Symbolic links for {self.img_dir} to {self.task_dir} complete!!', fore='g')}")
 
     def covert2yolo(self, img_info):
         dw = 1.0 / img_info['width']
