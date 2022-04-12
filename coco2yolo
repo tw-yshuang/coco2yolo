@@ -57,17 +57,17 @@ class Coco2Yolo(object):
         if self.cat_infos == ():
             if self.cat_type == 'interactive':
                 self.cat_infos = input("Enter the categories name you wish(split: ', '): ").split(', ')
-            elif self.cat_type == 'file':
+            else:  # self.cat_type == 'file'
                 self.cat_infos = input(f"Enter the category {str_format('JSON', fore='y')} file you want: ")
 
         if self.cat_type == 'interactive':
+            if len(cat_infos) == 0:
+                raise ValueError(f"{str_format('[Wrong Parameter] Input Error!', fore='r')}")
             self.cat_infos = list(self.cat_infos)
-        elif self.cat_type == 'file':
+        else:  # self.cat_type == 'file'
             self.cat_infos = self.cat_infos[0] if type(self.cat_infos) == tuple else self.cat_infos
             with open(self.cat_infos, 'r') as f:
                 self.cat_infos = list(json.load(f))
-        else:
-            raise ValueError(f"{str_format('[Wrong Parameter] Input comboination Error!', fore='r')}")
 
         if not self._check_all_data_exist():
             print(f"There have {str_format(f'{len(self.noexist_img_infos)}', fore='y')} data not exist in {self.img_dir}")
@@ -103,6 +103,7 @@ class Coco2Yolo(object):
         for cat_info in self.cat_infos:
             try:
                 cat_id = self.coco.getCatIds(catNms=cat_info)[0]
+                print(cat_id)
                 self.name_correspond_table[cat_info] = cat_id
                 self.cat_ids.append(cat_id)
             except IndexError:
@@ -123,6 +124,10 @@ class Coco2Yolo(object):
                 imgIds = self.coco.getImgIds(catIds=self.cat_ids)
 
             imgINFOs = self.coco.loadImgs(imgIds)
+
+            if len(imgINFOs) == 0 and self.set_type == 'intersection':
+                raise print(f"{str_format('IntersectionComputingError', fore='r')}, there has no data to satisfy this requirement.")
+
             if check2create_dir(self.img_dir):
                 filenames = get_filenames(dir_path=self.img_dir, specific_name='*.jpg', withDirPath=False)
                 self.exist_img_infos = []
