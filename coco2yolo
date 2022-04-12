@@ -62,7 +62,7 @@ class Coco2Yolo(object):
 
         if self.cat_type == 'interactive':
             if len(cat_infos) == 0:
-                raise ValueError(f"{str_format('[Wrong Parameter] Input Error!', fore='r')}")
+                raise ValueError(f"{str_format('InputError', fore='r')}")
             self.cat_infos = list(self.cat_infos)
         else:  # self.cat_type == 'file'
             self.cat_infos = self.cat_infos[0] if type(self.cat_infos) == tuple else self.cat_infos
