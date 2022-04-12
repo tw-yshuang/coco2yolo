@@ -1,3 +1,10 @@
+'''
+    This code edit by YU-SHUN,
+    Welcome to contact me if you have any questions.
+    e-mail: tw.yshuang@gmail.com
+    Github: https://github.com/tw-yshuang
+'''
+
 def str_format(word: str, style: str = 'default', fore: str = 'default', background: str = 'default'):
     '''Style_table
     ---

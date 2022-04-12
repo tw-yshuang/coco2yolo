@@ -1,3 +1,12 @@
+#!/usr/bin/env python3
+
+'''
+    This code edit by YU-SHUN,
+    Welcome to contact me if you have any questions.
+    e-mail: tw.yshuang@gmail.com
+    Github: https://github.com/tw-yshuang
+'''
+
 import os, re, click, json, requests
 from typing import List
 from pycocotools.coco import COCO
@@ -23,7 +32,7 @@ class Coco2Yolo(object):
         **kwargs,
     ):
         if img_dir is None:
-            img_dir = re.sub('[ ,!@#$]', '', input("Enter the directory that you save coco images: "))
+            img_dir = re.sub('[ ,!@#$]', '', input("Enter the directory that you save COCO images: "))
         if task_dir is None:
             task_dir = re.sub('[ ,!@#$]', '', input("Enter the directory that you want to save the task: "))
 
@@ -49,7 +58,7 @@ class Coco2Yolo(object):
             if self.cat_type == 'interactive':
                 self.cat_infos = input("Enter the categories name you wish(split: ', '): ").split(', ')
             elif self.cat_type == 'file':
-                self.cat_infos = input("Enter the category file you want: ")
+                self.cat_infos = input(f"Enter the category {str_format('JSON', fore='y')} file you want: ")
 
         if self.cat_type == 'interactive':
             self.cat_infos = list(self.cat_infos)
@@ -207,8 +216,8 @@ class Coco2Yolo(object):
 
 
 @click.command()
-@click.option('-ann-path', '--annotations-path', 'ann_path', type=str, required=True, help="JSON file. Path for label.")
-@click.option('-img-dir', '--image-download-dir', 'img_dir', type=str, default='./data', help="The directory of the image data place.")
+@click.option('-ann-path', '--annotation-path', 'ann_path', type=str, required=True, help="JSON file. Path for label.")
+@click.option('-img-dir', '--image-download-dir', 'img_dir', type=str, default=None, help="The directory of the image data place.")
 @click.option(
     '-task-dir',
     '--task-categories-dir',
@@ -253,7 +262,7 @@ def main(
         'cat_infos': cat_infos,
     }
     print(kwargs)
-    coco2yolo = Coco2Yolo(**kwargs)
+    Coco2Yolo(**kwargs)
 
 
 if __name__ == '__main__':

@@ -1,13 +1,15 @@
+'''
+    This code edit by YU-SHUN,
+    Welcome to contact me if you have any questions.
+    e-mail: tw.yshuang@gmail.com
+    Github: https://github.com/tw-yshuang
+'''
+
 import os, sys, glob
 from os import walk, mknod
 
 sys.path.append(os.path.abspath(__package__))
 from WordOperator import str_format
-
-'''
-    This code edit by YU-SHUN from NTUT IEM,
-    if have any problem, please contact this e-mail: t105370742@ntut.org.tw.
-'''
 
 
 def get_filenames(dir_path: str, specific_name: str, withDirPath=True, isImported=False) -> list:
