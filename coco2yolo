@@ -7,7 +7,7 @@
     Github: https://github.com/tw-yshuang
 '''
 
-import os, re, click, json, requests
+import os, sys, re, click, json, requests
 from typing import List
 from pycocotools.coco import COCO
 
@@ -39,9 +39,11 @@ class Coco2Yolo(object):
         cat_type = cat_type.lower()
         set_type = set_type.lower()
         if cat_type not in ('interactive', 'file'):
-            raise ValueError(f"{str_format('[Wrong Parameter] --category-type [interactive | file]', fore='r')}")
+            print(f"{str_format('[Wrong Parameter] --category-type [interactive | file]', fore='r')}")
+            sys.exit()
         if set_type not in ('union', 'intersection'):
-            raise ValueError(f"{str_format('[Wrong Parameter] --set-computing-type [union | intersection]', fore='r')}")
+            print(f"{str_format('[Wrong Parameter] --set-computing-type [union | intersection]', fore='r')}")
+            sys.exit()
 
         self.ann_path = ann_path
         self.img_dir = img_dir if img_dir[-1] != '/' else img_dir[:-1]
@@ -49,25 +51,13 @@ class Coco2Yolo(object):
         self.cat_type = cat_type
         self.set_type = set_type
         self.cat_infos = cat_infos
+        self.check_categories_info = False
 
         self.coco = COCO(ann_path)
         self.names = [cat['name'] for cat in self.coco.loadCats(self.coco.getCatIds())]
         print(f"{str_format('COCO categories', fore='sky')}: \n{self.names}\n")
 
-        if self.cat_infos == ():
-            if self.cat_type == 'interactive':
-                self.cat_infos = input("Enter the categories name you wish(split: ', '): ").split(', ')
-            else:  # self.cat_type == 'file'
-                self.cat_infos = input(f"Enter the category {str_format('JSON', fore='y')} file you want: ")
-
-        if self.cat_type == 'interactive':
-            if len(cat_infos) == 0:
-                raise ValueError(f"{str_format('InputError', fore='r')}")
-            self.cat_infos = list(self.cat_infos)
-        else:  # self.cat_type == 'file'
-            self.cat_infos = self.cat_infos[0] if type(self.cat_infos) == tuple else self.cat_infos
-            with open(self.cat_infos, 'r') as f:
-                self.cat_infos = list(json.load(f))
+        self._get_categories_info()
 
         if not self._check_all_data_exist():
             print(f"There have {str_format(f'{len(self.noexist_img_infos)}', fore='y')} data not exist in {self.img_dir}")
@@ -96,14 +86,45 @@ class Coco2Yolo(object):
 
         print(f"{str_format('DONE!!', style='hight', fore='g')}")
 
-    def _check_all_data_exist(self):
+    def _get_categories_info(self):
+        if self.cat_infos == ():
+            if self.cat_type == 'interactive':
+                self.cat_infos = input("Enter the categories name you wish(split: ', '): ").split(', ')
+            else:  # self.cat_type == 'file'
+                self.cat_infos = input(f"Enter the category {str_format('JSON', fore='y')} file you want: ")
+
+        if self.cat_type == 'interactive':
+            if self.cat_infos == ['']:
+                print(f"{str_format('[GivenInputError]', fore='y')} Can not be nothing.\nPlease try again.")
+                self.cat_infos = ()
+                self._get_categories_info()
+            self.cat_infos = list(self.cat_infos)
+        else:  # self.cat_type == 'file'
+            self.cat_infos = self.cat_infos[0] if type(self.cat_infos) == tuple else self.cat_infos
+            try:
+                with open(self.cat_infos, 'r') as f:
+                    self.cat_infos = list(json.load(f))
+            except FileNotFoundError:
+                print(f"{str_format('[GivenFileError]', fore='r')} Not a currect JSON file.\nPlease try again.")
+                self.cat_infos = ()
+                self._get_categories_info()
+
+        if self.check_categories_info is False:
+            self._check_categories_info()
+        if self.check_categories_info is False:
+            self.cat_infos = ()
+            self._get_categories_info()
+        else:
+            return True
+
+    def _check_categories_info(self):
         self.name_correspond_table = {}
         self.cat_ids = []
         noexist_cats = []
         for cat_info in self.cat_infos:
             try:
                 cat_id = self.coco.getCatIds(catNms=cat_info)[0]
-                print(cat_id)
+                # print(cat_id)
                 self.name_correspond_table[cat_info] = cat_id
                 self.cat_ids.append(cat_id)
             except IndexError:
@@ -111,43 +132,44 @@ class Coco2Yolo(object):
                 print(f"Not exist category name: {str_format(cat_info, fore='y')}")
 
         [self.cat_infos.remove(noexist_cat) for noexist_cat in noexist_cats]
-        print(self.cat_infos)
-
-        if len(self.cat_ids) == 0:
-            raise ValueError(
-                f"{str_format('[Wrong Parameter] --image-download-dir', fore='r')}, there has no corresponding categories name."
-            )
+        if len(self.cat_infos) == 0:
+            self.check_categories_info = False
         else:
-            if self.set_type == 'union':
-                imgIds = list(set().union(*[self.coco.getImgIds(catIds=cat_id) for cat_id in self.cat_ids]))
-            else:  # intersection
-                imgIds = self.coco.getImgIds(catIds=self.cat_ids)
+            print(self.cat_infos)
+            self.check_categories_info = True
 
-            imgINFOs = self.coco.loadImgs(imgIds)
+    def _check_all_data_exist(self):
+        if self.set_type == 'union':
+            imgIds = list(set().union(*[self.coco.getImgIds(catIds=cat_id) for cat_id in self.cat_ids]))
+        else:  # intersection
+            imgIds = self.coco.getImgIds(catIds=self.cat_ids)
 
-            if len(imgINFOs) == 0 and self.set_type == 'intersection':
-                raise print(f"{str_format('IntersectionComputingError', fore='r')}, there has no data to satisfy this requirement.")
+        imgINFOs = self.coco.loadImgs(imgIds)
 
-            if check2create_dir(self.img_dir):
-                filenames = get_filenames(dir_path=self.img_dir, specific_name='*.jpg', withDirPath=False)
-                self.exist_img_infos = []
-                self.noexist_img_infos = []
-                print(f"The total number of the data: {len(imgINFOs)}")
-                for img_info in imgINFOs:
-                    if img_info['file_name'] in (filenames):
-                        self.exist_img_infos.append(img_info)
-                    else:
-                        self.noexist_img_infos.append(img_info)
+        if len(imgINFOs) == 0 and self.set_type == 'intersection':
+            print(f"{str_format('IntersectionComputingError', fore='r')}, there has no data to satisfy this requirement.")
+            sys.exit()
 
-                if len(self.noexist_img_infos) == 0:
-                    del self.noexist_img_infos
-                    return True
+        if check2create_dir(self.img_dir):
+            filenames = get_filenames(dir_path=self.img_dir, specific_name='*.jpg', withDirPath=False)
+            self.exist_img_infos = []
+            self.noexist_img_infos = []
+            print(f"The total number of the data: {len(imgINFOs)}")
+            for img_info in imgINFOs:
+                if img_info['file_name'] in (filenames):
+                    self.exist_img_infos.append(img_info)
                 else:
-                    return False
+                    self.noexist_img_infos.append(img_info)
 
+            if len(self.noexist_img_infos) == 0:
+                del self.noexist_img_infos
+                return True
             else:
-                self.noexist_img_infos = imgINFOs
                 return False
+
+        else:
+            self.noexist_img_infos = imgINFOs
+            return False
 
     def _download_data(self):
         idx = 0
