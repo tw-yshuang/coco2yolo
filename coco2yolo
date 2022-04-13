@@ -51,7 +51,7 @@ class Coco2Yolo(object):
         self.cat_type = cat_type
         self.set_type = set_type
         self.cat_infos = cat_infos
-        self.check_categories_info = False
+        self.check_categories_info = None
 
         self.coco = COCO(ann_path)
         self.names = [cat['name'] for cat in self.coco.loadCats(self.coco.getCatIds())]
@@ -109,7 +109,8 @@ class Coco2Yolo(object):
                 self.cat_infos = ()
                 self._get_categories_info()
 
-        if self.check_categories_info is False:
+        # if is None, means never check before
+        if self.check_categories_info is None:
             self._check_categories_info()
         if self.check_categories_info is False:
             self.cat_infos = ()
