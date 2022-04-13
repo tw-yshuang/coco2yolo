@@ -288,7 +288,7 @@ def main(
         'set_type': set_type,
         'cat_infos': cat_infos,
     }
-    print(kwargs)
+    # print(kwargs)
     Coco2Yolo(**kwargs)
 
 
