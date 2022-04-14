@@ -109,11 +109,12 @@ class Coco2Yolo(object):
                 self.cat_infos = ()
                 self._get_categories_info()
 
-        # if is None, means never check before
-        if self.check_categories_info is None:
+        # optimize recursion func. operation!!
+        if self.check_categories_info is None:  # the never check new given input.
             self._check_categories_info()
         if self.check_categories_info is False:
             self.cat_infos = ()
+            self.check_categories_info = None
             self._get_categories_info()
         else:
             return True
