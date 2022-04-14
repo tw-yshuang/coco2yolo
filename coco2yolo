@@ -152,10 +152,10 @@ class Coco2Yolo(object):
             print(f"{str_format('IntersectionComputingError', fore='r')}, there has no data to satisfy this requirement.")
             sys.exit()
 
+        self.exist_img_infos = []
+        self.noexist_img_infos = []
         if check2create_dir(self.img_dir):
             filenames = get_filenames(dir_path=self.img_dir, specific_name='*.jpg', withDirPath=False)
-            self.exist_img_infos = []
-            self.noexist_img_infos = []
             print(f"The total number of the data: {len(imgINFOs)}")
             for img_info in imgINFOs:
                 if img_info['file_name'] in (filenames):
@@ -168,7 +168,6 @@ class Coco2Yolo(object):
                 return True
             else:
                 return False
-
         else:
             self.noexist_img_infos = imgINFOs
             return False
