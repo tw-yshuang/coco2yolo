@@ -6,7 +6,7 @@
 '''
 
 import os, sys, glob
-from os import walk, mknod
+from os import walk
 
 sys.path.append(os.path.abspath(__package__))
 from WordOperator import str_format
@@ -58,7 +58,6 @@ def read_imported_root_from_txt() -> list:
     try:
         imported_root_info = open(path).read()
     except FileNotFoundError:
-        mknod(path)
         imported_root_info = []
 
     imported_root_ls = imported_root_info.split(',\n')
