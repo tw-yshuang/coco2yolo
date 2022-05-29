@@ -125,7 +125,7 @@ class Coco2Yolo(object):
         noexist_cats = []
         for cat_info in self.cat_infos:
             try:
-                cat_id = self.coco.getCatIds(catNms=cat_info)[0]
+                cat_id = self.coco.getCatIds(catNms=[cat_info])[0]
                 # print(cat_id)
                 self.name_correspond_table[cat_info] = cat_id
                 self.cat_ids.append(cat_id)
