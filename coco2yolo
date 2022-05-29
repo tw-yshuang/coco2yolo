@@ -105,7 +105,7 @@ class Coco2Yolo(object):
                 with open(self.cat_infos, 'r') as f:
                     self.cat_infos = list(json.load(f))
             except FileNotFoundError:
-                print(f"{str_format('[GivenFileError]', fore='r')} Not a currect JSON file.\nPlease try again.")
+                print(f"{str_format('[GivenFileError]', fore='r')} Not a correct JSON file.\nPlease try again.")
                 self.cat_infos = ()
                 self._get_categories_info()
 
@@ -243,36 +243,36 @@ class Coco2Yolo(object):
                 )
 
 
-@click.command()
-@click.option('-ann-path', '--annotation-path', 'ann_path', type=str, required=True, help="JSON file. Path for label.")
-@click.option('-img-dir', '--image-download-dir', 'img_dir', type=str, default=None, help="The directory of the image data place.")
-@click.option(
-    '-task-dir',
-    '--task-categories-dir',
-    'task_dir',
-    type=str,
-    default=None,
-    help="Build a directory that follows the task-required categories.",
-)
-@click.option(
-    '-cat-t',
-    '--category-type',
-    'cat_type',
-    type=str,
-    default='interactive',
-    help=f"Category input type. {str_format('(interactive | file)', fore='y')}",
-    show_default=True,
-)
-@click.option(
-    '-set',
-    '--set-computing-type',
-    'set_type',
-    type=str,
-    default='union',
-    help=f"Set Computing for the data. {str_format('(union | intersection)', fore='y')}",
-    show_default=True,
-)
-@click.argument('cat_infos', type=str, default=None, nargs=-1)
+# @click.command()
+# @click.option('-ann-path', '--annotation-path', 'ann_path', type=str, required=True, help="JSON file. Path for label.")
+# @click.option('-img-dir', '--image-download-dir', 'img_dir', type=str, default=None, help="The directory of the image data place.")
+# @click.option(
+#     '-task-dir',
+#     '--task-categories-dir',
+#     'task_dir',
+#     type=str,
+#     default=None,
+#     help="Build a directory that follows the task-required categories.",
+# )
+# @click.option(
+#     '-cat-t',
+#     '--category-type',
+#     'cat_type',
+#     type=str,
+#     default='interactive',
+#     help=f"Category input type. {str_format('(interactive | file)', fore='y')}",
+#     show_default=True,
+# )
+# @click.option(
+#     '-set',
+#     '--set-computing-type',
+#     'set_type',
+#     type=str,
+#     default='union',
+#     help=f"Set Computing for the data. {str_format('(union | intersection)', fore='y')}",
+#     show_default=True,
+# )
+# @click.argument('cat_infos', type=str, default=None, nargs=-1)
 def main(
     ann_path: str = './data',
     img_dir: str = None,
@@ -281,13 +281,21 @@ def main(
     set_type: str = 'union',
     cat_infos: str or List[str] = None,
 ):
+    # kwargs = {
+    #     'ann_path': ann_path,
+    #     'img_dir': img_dir,
+    #     'task_dir': task_dir,
+    #     'cat_type': cat_type,
+    #     'set_type': set_type,
+    #     'cat_infos': cat_infos,
+    # }
     kwargs = {
-        'ann_path': ann_path,
-        'img_dir': img_dir,
-        'task_dir': task_dir,
-        'cat_type': cat_type,
+        'ann_path': './data/annotations/instances_val2017.json',
+        'img_dir': './data/val2017',
+        'task_dir': './data/val2017_all',
+        'cat_type': 'file',
         'set_type': set_type,
-        'cat_infos': cat_infos,
+        'cat_infos': './data/cate2017.json',
     }
     # print(kwargs)
     Coco2Yolo(**kwargs)
