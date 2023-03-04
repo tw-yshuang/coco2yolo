@@ -7,12 +7,20 @@
     Github: https://github.com/tw-yshuang
 '''
 
-import os, sys, re, click, json, requests
-from typing import List
+import os, sys, re, json, itertools 
+from typing import Dict, List
+
+import click, requests
 from pycocotools.coco import COCO
 
 from submodules.FileSearcher import get_filenames, check2create_dir
 from submodules.WordOperator import str_format, ask_yn
+
+FILE_EXTENSIONS = ['jpg', 'png', 'gif']
+
+class FileExtensionError(Exception):
+    '''No support file extension.'''
+    pass
 
 # Truncates numbers to N decimals
 def truncate(n, decimals=0):
@@ -155,7 +163,7 @@ class Coco2Yolo(object):
         self.exist_img_infos = []
         self.noexist_img_infos = []
         if check2create_dir(self.img_dir):
-            filenames = get_filenames(dir_path=self.img_dir, specific_name='*.jpg', withDirPath=False)
+            filenames = list(itertools.chain.from_iterable([get_filenames(dir_path=self.img_dir, specific_name=f'*.{ext}', withDirPath=False) for ext in FILE_EXTENSIONS]))
             print(f"The total number of the data: {len(imgINFOs)}")
             for img_info in imgINFOs:
                 if img_info['file_name'] in (filenames):
@@ -221,7 +229,10 @@ class Coco2Yolo(object):
         annIds = self.coco.getAnnIds(imgIds=img_info['id'], catIds=self.cat_ids, iscrowd=None)
         anns = self.coco.loadAnns(annIds)
 
-        with open(f'{self.task_dir}/{img_info["file_name"].replace(".jpg", ".txt")}', 'w') as f:
+        filename_struct_ls: List[str] = img_info['file_name'].split('.')
+        assert filename_struct_ls[-1].lower() in FILE_EXTENSIONS, FileExtensionError
+        
+        with open(f'{self.task_dir}/{".".join([*filename_struct_ls[:-1], "txt"])}', 'w') as f:
             for i in range(len(anns)):
                 xmin = anns[i]['bbox'][0]
                 ymin = anns[i]['bbox'][1]
